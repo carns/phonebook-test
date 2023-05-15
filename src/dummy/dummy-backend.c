@@ -5,7 +5,7 @@
  */
 #include <string.h>
 #include <json-c/json.h>
-#include "alpha/alpha-backend.h"
+#include "YP/YP-backend.h"
 #include "../provider.h"
 #include "dummy-backend.h"
 
@@ -14,9 +14,9 @@ typedef struct dummy_context {
     /* ... */
 } dummy_context;
 
-static alpha_return_t dummy_create_resource(
+static YP_return_t dummy_create_phonebook(
         margo_instance_id mid,
-        alpha_provider_t provider,
+        YP_provider_t provider,
         const char* config_str,
         void** context)
 {
@@ -35,7 +35,7 @@ static alpha_return_t dummy_create_resource(
             margo_error(mid, "JSON parse error: %s",
                       json_tokener_error_desc(jerr));
             json_tokener_free(tokener);
-            return ALPHA_ERR_INVALID_CONFIG;
+            return YP_ERR_INVALID_CONFIG;
         }
         json_tokener_free(tokener);
     } else {
@@ -46,12 +46,12 @@ static alpha_return_t dummy_create_resource(
     dummy_context* ctx = (dummy_context*)calloc(1, sizeof(*ctx));
     ctx->config = config;
     *context = (void*)ctx;
-    return ALPHA_SUCCESS;
+    return YP_SUCCESS;
 }
 
-static alpha_return_t dummy_open_resource(
+static YP_return_t dummy_open_phonebook(
         margo_instance_id mid,
-        alpha_provider_t provider,
+        YP_provider_t provider,
         const char* config_str,
         void** context)
 {
@@ -71,7 +71,7 @@ static alpha_return_t dummy_open_resource(
             margo_error(mid, "JSON parse error: %s",
                       json_tokener_error_desc(jerr));
             json_tokener_free(tokener);
-            return ALPHA_ERR_INVALID_CONFIG;
+            return YP_ERR_INVALID_CONFIG;
         }
         json_tokener_free(tokener);
     } else {
@@ -82,23 +82,23 @@ static alpha_return_t dummy_open_resource(
     dummy_context* ctx = (dummy_context*)calloc(1, sizeof(*ctx));
     ctx->config = config;
     *context = (void*)ctx;
-    return ALPHA_SUCCESS;
+    return YP_SUCCESS;
 }
 
-static alpha_return_t dummy_close_resource(void* ctx)
+static YP_return_t dummy_close_phonebook(void* ctx)
 {
     dummy_context* context = (dummy_context*)ctx;
     json_object_put(context->config);
     free(context);
-    return ALPHA_SUCCESS;
+    return YP_SUCCESS;
 }
 
-static alpha_return_t dummy_destroy_resource(void* ctx)
+static YP_return_t dummy_destroy_phonebook(void* ctx)
 {
     dummy_context* context = (dummy_context*)ctx;
     json_object_put(context->config);
     free(context);
-    return ALPHA_SUCCESS;
+    return YP_SUCCESS;
 }
 
 static char* dummy_get_config(void* ctx)
@@ -111,7 +111,7 @@ static void dummy_say_hello(void* ctx)
 {
     dummy_context* context = (dummy_context*)ctx;
     (void)context;
-    printf("Hello World from Dummy resource\n");
+    printf("Hello World from Dummy phonebook\n");
 }
 
 static int32_t dummy_compute_sum(void* ctx, int32_t x, int32_t y)
@@ -120,20 +120,20 @@ static int32_t dummy_compute_sum(void* ctx, int32_t x, int32_t y)
     return x+y;
 }
 
-static alpha_backend_impl dummy_backend = {
+static YP_backend_impl dummy_backend = {
     .name             = "dummy",
 
-    .create_resource  = dummy_create_resource,
-    .open_resource    = dummy_open_resource,
-    .close_resource   = dummy_close_resource,
-    .destroy_resource = dummy_destroy_resource,
+    .create_phonebook  = dummy_create_phonebook,
+    .open_phonebook    = dummy_open_phonebook,
+    .close_phonebook   = dummy_close_phonebook,
+    .destroy_phonebook = dummy_destroy_phonebook,
     .get_config       = dummy_get_config,
 
     .hello            = dummy_say_hello,
     .sum              = dummy_compute_sum
 };
 
-alpha_return_t alpha_provider_register_dummy_backend(alpha_provider_t provider)
+YP_return_t YP_provider_register_dummy_backend(YP_provider_t provider)
 {
-    return alpha_provider_register_backend(provider, &dummy_backend);
+    return YP_provider_register_backend(provider, &dummy_backend);
 }
